@@ -17,7 +17,7 @@ class HttpClient(private val config: VtexAdsConfig) {
         .connectTimeout(config.timeout.inWholeSeconds, TimeUnit.SECONDS)
         .readTimeout(config.timeout.inWholeSeconds, TimeUnit.SECONDS)
         .writeTimeout(config.timeout.inWholeSeconds, TimeUnit.SECONDS)
-        .addInterceptor(AuthInterceptor(config.apiKey))
+        .addInterceptor(PublisherInterceptor(config.publisherId, config.channel))
         .addInterceptor(LoggingInterceptor(config.debug))
         .build()
 
@@ -139,12 +139,16 @@ class HttpClient(private val config: VtexAdsConfig) {
 }
 
 /**
- * Interceptor for adding authentication headers to requests.
+ * Interceptor for adding publisher identification headers to requests.
  */
-private class AuthInterceptor(private val apiKey: String) : Interceptor {
+private class PublisherInterceptor(
+    private val publisherId: String,
+    private val channel: com.vtex.ads.sdk.Channel
+) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request().newBuilder()
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("X-Publisher-Id", publisherId)
+            .addHeader("X-Channel", channel.name.lowercase())
             .addHeader("Content-Type", "application/json")
             .build()
         return chain.proceed(request)

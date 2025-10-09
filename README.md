@@ -33,13 +33,14 @@ dependencies {
 ```kotlin
 import com.vtex.ads.sdk.VtexAdsClient
 import com.vtex.ads.sdk.VtexAdsConfig
+import com.vtex.ads.sdk.Channel
 import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
     // Configure the SDK
     val config = VtexAdsConfig(
-        apiKey = "your-api-key",
-        accountName = "your-account-name"
+        publisherId = "your-publisher-id",
+        channel = Channel.WEB
     )
 
     // Create client
@@ -90,4 +91,3 @@ MIT License - see LICENSE file for details.
 
 - Issues: https://github.com/vtex/vtex-ads-sdk-kotlin/issues
 - Documentation: https://developers.vtex.com
->>>>>>> feca706 (start sdk)

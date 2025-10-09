@@ -10,12 +10,12 @@ class VtexAdsConfigTest {
     @Test
     fun `should create config with valid parameters`() {
         val config = VtexAdsConfig(
-            apiKey = "test-api-key",
-            accountName = "test-account"
+            publisherId = "test-publisher-id",
+            channel = Channel.WEB
         )
 
-        assertEquals("test-api-key", config.apiKey)
-        assertEquals("test-account", config.accountName)
+        assertEquals("test-publisher-id", config.publisherId)
+        assertEquals(Channel.WEB, config.channel)
         assertEquals(VtexAdsConfig.DEFAULT_BASE_URL, config.baseUrl)
         assertEquals(30.seconds, config.timeout)
         assertEquals(3, config.maxRetries)
@@ -23,21 +23,22 @@ class VtexAdsConfigTest {
     }
 
     @Test
-    fun `should fail with blank api key`() {
-        assertFailsWith<IllegalArgumentException> {
-            VtexAdsConfig(
-                apiKey = "",
-                accountName = "test-account"
+    fun `should create config with all channels`() {
+        Channel.values().forEach { channel ->
+            val config = VtexAdsConfig(
+                publisherId = "test-publisher-id",
+                channel = channel
             )
+            assertEquals(channel, config.channel)
         }
     }
 
     @Test
-    fun `should fail with blank account name`() {
+    fun `should fail with blank publisher id`() {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsConfig(
-                apiKey = "test-api-key",
-                accountName = ""
+                publisherId = "",
+                channel = Channel.WEB
             )
         }
     }
@@ -46,8 +47,8 @@ class VtexAdsConfigTest {
     fun `should fail with negative timeout`() {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsConfig(
-                apiKey = "test-api-key",
-                accountName = "test-account",
+                publisherId = "test-publisher-id",
+                channel = Channel.WEB,
                 timeout = (-1).seconds
             )
         }
@@ -57,8 +58,8 @@ class VtexAdsConfigTest {
     fun `should fail with negative max retries`() {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsConfig(
-                apiKey = "test-api-key",
-                accountName = "test-account",
+                publisherId = "test-publisher-id",
+                channel = Channel.WEB,
                 maxRetries = -1
             )
         }

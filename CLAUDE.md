@@ -103,14 +103,14 @@ dependencies {
 ```kotlin
 import com.vtex.ads.sdk.VtexAdsClient
 import com.vtex.ads.sdk.VtexAdsConfig
+import com.vtex.ads.sdk.Channel
 import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
     // Create configuration
     val config = VtexAdsConfig(
-        apiKey = "your-api-key",
-        accountName = "your-account-name",
-        baseUrl = "https://api.vtex.com"
+        publisherId = "your-publisher-id",
+        channel = Channel.WEB
     )
 
     // Initialize client
@@ -194,13 +194,21 @@ The SDK aims to provide complete coverage of the VTEX Ads API:
 
 ```kotlin
 data class VtexAdsConfig(
-    val apiKey: String,                    // Your VTEX Ads API key
-    val accountName: String,               // VTEX account name
+    val publisherId: String,               // Your VTEX Ads publisher ID
+    val channel: Channel,                  // Channel (WEB, MOBILE, DESKTOP, API, OTHER)
     val baseUrl: String = DEFAULT_BASE_URL, // API base URL
     val timeout: Duration = 30.seconds,    // Request timeout
     val maxRetries: Int = 3,               // Number of retries for failed requests
     val debug: Boolean = false             // Enable debug logging
 )
+
+enum class Channel {
+    WEB,      // Web browser channel
+    MOBILE,   // Mobile application channel
+    DESKTOP,  // Desktop application channel
+    API,      // API/Server-to-server channel
+    OTHER     // Other unspecified channel
+}
 ```
 
 ## Error Handling
