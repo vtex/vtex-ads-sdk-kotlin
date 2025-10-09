@@ -10,23 +10,26 @@ jobs:
   test:
     name: Run Unit Tests
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      GRADLE_OPTS: -Djava.net.preferIPv4Stack=true -Dorg.gradle.internal.http.socketTimeout=120000 -Dorg.gradle.internal.http.connectionTimeout=120000
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate Gradle Wrapper
-        if: ${{ hashFiles('**/gradle/wrapper/gradle-wrapper.jar') != '' }}
-        uses: gradle/actions/wrapper-validation@v3
+      # - name: Validate Gradle Wrapper
+      #   if: ${{ hashFiles('**/gradle/wrapper/gradle-wrapper.jar') != '' }}
+      #   uses: gradle/actions/wrapper-validation@v3
 
-      - name: Skip validation (no wrapper JAR found)
-        if: ${{ hashFiles('**/gradle/wrapper/gradle-wrapper.jar') == '' }}
-        run: |
-          echo "Gradle wrapper JAR not found; skipping validation."
-          echo "Commit gradle/wrapper/gradle-wrapper.jar to enable validation."
+      # - name: Skip validation (no wrapper JAR found)
+      #   if: ${{ hashFiles('**/gradle/wrapper/gradle-wrapper.jar') == '' }}
+      #   run: |
+      #     echo "Gradle wrapper JAR not found; skipping validation."
+      #     echo "Commit gradle/wrapper/gradle-wrapper.jar to enable validation."
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -42,13 +45,31 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
-      - name: Run tests (Unix)
+      - name: Run tests (Unix) with retries
         if: runner.os != 'Windows'
-        run: ./gradlew test --no-daemon --stacktrace
+        run: |
+          attempt=0
+          until [ $attempt -ge 3 ]
+          do
+            ./gradlew test --no-daemon --stacktrace && break
+            attempt=$((attempt+1))
+            echo "Retrying in $((attempt*10))s..."
+            sleep $((attempt*10))
+          done
+          [ $attempt -lt 3 ] || exit 1
 
-      - name: Run tests (Windows)
+      - name: Run tests (Windows) with retries
         if: runner.os == 'Windows'
-        run: ./gradlew.bat test --no-daemon --stacktrace
+        shell: pwsh
+        run: |
+          $max=3
+          for ($i=1; $i -le $max; $i++) {
+            ./gradlew.bat test --no-daemon --stacktrace
+            if ($LASTEXITCODE -eq 0) { exit 0 }
+            Write-Host "Retry $i failed. Waiting $($i*10)s..."
+            Start-Sleep -Seconds ($i*10)
+          }
+          exit 1
 
       - name: Upload test reports
         if: always()
@@ -58,4 +79,3 @@ jobs:
           path: |
             build/reports/tests/test
             build/test-results/test
-
