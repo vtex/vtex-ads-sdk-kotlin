@@ -64,3 +64,9 @@ hs_err_pid*
 replay_pid*
 
 vtexads-api-docs
+
+# Allow essential Gradle Wrapper files (must be tracked)
+!gradlew
+!gradlew.bat
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
