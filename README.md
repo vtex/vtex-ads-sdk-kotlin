@@ -1000,6 +1000,8 @@ SOFTWARE.
 ## 🆘 Support
 
 - **Issues**: [GitHub Issues](https://github.com/vtex/vtex-ads-sdk-kotlin/issues)
+- **Documentation**: [VTEX Developer Portal](https://developers.vtex.com)
+- **Email**: dev@vtex.com
 
 ---
 
@@ -1013,3 +1015,6 @@ Special thanks to:
 - The VTEX developer community
 
 ---
+---
+
+**Made with ❤️ using [Claude Code](https://claude.com/claude-code)**
