@@ -4,6 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.vtex.ads.sdk.VtexAdsClientConfig
+import com.vtex.ads.sdk.VtexLogger
+import com.vtex.ads.sdk.VtexAdsDebug
 import com.vtex.ads.sdk.exceptions.VtexAdsException
 import com.vtex.ads.sdk.http.AdJsonAdapterFactory
 import com.vtex.ads.sdk.models.*
@@ -20,8 +22,12 @@ import java.util.concurrent.atomic.AtomicReference
  * Service for querying ads from VTEX Ads API.
  *
  * @property config Client configuration
+ * @property logger Internal logger for debug messages
  */
-class AdsService(private val config: VtexAdsClientConfig) {
+class AdsService(
+    private val config: VtexAdsClientConfig,
+    private val logger: VtexLogger
+) {
 
     private val currentUserId = AtomicReference(config.getUserId())
 
@@ -210,15 +216,23 @@ class AdsService(private val config: VtexAdsClientConfig) {
         val url = "$BASE_URL/v1/rma/${config.publisherId}"
         val json = adsRequestAdapter.toJson(adsRequest)
         val body = json.toRequestBody(JSON_MEDIA_TYPE)
+        val requestId = generateRequestId()
 
         val request = Request.Builder()
             .url(url)
             .post(body)
             .build()
 
+        val startTime = System.currentTimeMillis()
+
         try {
             client.newCall(request).execute().use { response ->
+                val latencyMs = System.currentTimeMillis() - startTime
+                
                 if (!response.isSuccessful) {
+                    logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
+                        "ads_load error requestId=$requestId status=${response.code} latencyMs=$latencyMs cause=VtexAdsException: Failed to get ads: ${response.code} - ${response.message}"
+                    }
                     throw VtexAdsException("Failed to get ads: ${response.code} - ${response.message}")
                 }
 
@@ -227,10 +241,27 @@ class AdsService(private val config: VtexAdsClientConfig) {
 
                 println(responseBody)
 
-                return parseAdsResponse(responseBody)
+                val adsResponse = parseAdsResponse(responseBody)
+                val totalAds = adsResponse.getAllAds().size
+                
+                logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
+                    "ads_load success requestId=$requestId status=${response.code} latencyMs=$latencyMs count=$totalAds"
+                }
+                
+                return adsResponse
             }
         } catch (e: IOException) {
+            val latencyMs = System.currentTimeMillis() - startTime
+            logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
+                "ads_load error requestId=$requestId status=0 latencyMs=$latencyMs cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
+            }
             throw VtexAdsException("Network error while fetching ads: ${e.message}", e)
+        } catch (e: VtexAdsException) {
+            val latencyMs = System.currentTimeMillis() - startTime
+            logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
+                "ads_load error requestId=$requestId status=parse_error latencyMs=$latencyMs cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
+            }
+            throw e
         }
     }
 
@@ -266,6 +297,13 @@ class AdsService(private val config: VtexAdsClientConfig) {
     fun close() {
         client.dispatcher.executorService.shutdown()
         client.connectionPool.evictAll()
+    }
+
+    /**
+     * Helper function to generate a unique request ID for logging purposes.
+     */
+    private fun generateRequestId(): String {
+        return "req_${System.currentTimeMillis()}_${(Math.random() * 1000).toInt()}"
     }
 
     companion object {

@@ -3,6 +3,8 @@ package com.vtex.ads.sdk.services
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.vtex.ads.sdk.VtexAdsClientConfig
+import com.vtex.ads.sdk.VtexLogger
+import com.vtex.ads.sdk.VtexAdsDebug
 import com.vtex.ads.sdk.models.*
 import com.vtex.ads.sdk.utils.HashUtils
 import kotlinx.coroutines.CoroutineScope
@@ -21,8 +23,12 @@ import java.util.concurrent.atomic.AtomicReference
  * Events are sent in a fire-and-forget manner to avoid blocking the UI.
  *
  * @property config Client configuration
+ * @property logger Internal logger for debug messages
  */
-class EventService(private val config: VtexAdsClientConfig) {
+class EventService(
+    private val config: VtexAdsClientConfig,
+    private val logger: VtexLogger
+) {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val currentUserId = AtomicReference(config.getUserId())
@@ -57,14 +63,51 @@ class EventService(private val config: VtexAdsClientConfig) {
      * - Click events: when a user clicks on an ad
      *
      * @param eventUrl The event URL from the ad response (impressionUrl, viewUrl, or clickUrl)
+     * @param placement Optional placement name for logging context
      * @param onComplete Optional callback with success/failure status
      */
     fun deliveryBeaconEvent(
         eventUrl: String,
+        placement: String? = null,
         onComplete: ((Boolean) -> Unit)? = null
     ) {
+        // Determine event type from URL for logging
+        val eventType = when {
+            eventUrl.contains("impression") -> VtexAdsDebug.EVENTS_IMPRESSION
+            eventUrl.contains("view") -> VtexAdsDebug.EVENTS_VIEW
+            eventUrl.contains("click") -> VtexAdsDebug.EVENTS_CLICK
+            else -> VtexAdsDebug.EVENTS_IMPRESSION // Default fallback
+        }
+        
+        // Extract ad ID from URL for logging (if available)
+        val adId = extractAdIdFromUrl(eventUrl)
+        val placementInfo = placement?.let { "placement=$it" } ?: ""
+        
+        logger.log(eventType, "VtexAds/Events") {
+            val action = when (eventType) {
+                VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
+                VtexAdsDebug.EVENTS_VIEW -> "view"
+                VtexAdsDebug.EVENTS_CLICK -> "click"
+                else -> "delivery_beacon_event"
+            }
+            "$action success adId=$adId $placementInfo".trim()
+        }
+        
         scope.launch {
             val success = sendEvent(eventUrl)
+            
+            if (!success) {
+                logger.log(eventType, "VtexAds/Events") {
+                    val action = when (eventType) {
+                        VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
+                        VtexAdsDebug.EVENTS_VIEW -> "view"
+                        VtexAdsDebug.EVENTS_CLICK -> "click"
+                        else -> "delivery_beacon_event"
+                    }
+                    "$action error adId=$adId $placementInfo reason=network_error".trim()
+                }
+            }
+            
             onComplete?.invoke(success)
         }
     }
@@ -80,8 +123,19 @@ class EventService(private val config: VtexAdsClientConfig) {
         conversionRequest: ConversionRequest,
         onComplete: ((Boolean) -> Unit)? = null
     ) {
+        logger.log(VtexAdsDebug.EVENTS_CONVERSION, "VtexAds/Events") {
+            "conversion success orderId=${conversionRequest.orderId} userId=${conversionRequest.userId} items=${conversionRequest.items.size}"
+        }
+        
         scope.launch {
             val success = sendConversionEvent(conversionRequest)
+            
+            if (!success) {
+                logger.log(VtexAdsDebug.EVENTS_CONVERSION, "VtexAds/Events") {
+                    "conversion error orderId=${conversionRequest.orderId} userId=${conversionRequest.userId} reason=network_error"
+                }
+            }
+            
             onComplete?.invoke(success)
         }
     }
@@ -208,6 +262,17 @@ class EventService(private val config: VtexAdsClientConfig) {
     fun close() {
         client.dispatcher.executorService.shutdown()
         client.connectionPool.evictAll()
+    }
+
+    /**
+     * Helper function to extract ad ID from event URL.
+     * This is a best-effort extraction for logging purposes.
+     */
+    private fun extractAdIdFromUrl(url: String): String {
+        // Try to extract ad ID from common URL patterns
+        val adIdPattern = "ad_id=([^&]+)".toRegex()
+        val match = adIdPattern.find(url)
+        return match?.groupValues?.get(1) ?: "unknown"
     }
 
     companion object {

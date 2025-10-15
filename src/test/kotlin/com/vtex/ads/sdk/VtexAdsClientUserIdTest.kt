@@ -14,7 +14,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = { "user-789" },
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertEquals("user-789", client.getCurrentUserId())
@@ -28,7 +30,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = null,
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertNull(client.getCurrentUserId())
@@ -42,7 +46,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = null,
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertNull(client.getCurrentUserId())
@@ -60,7 +66,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = { "user-old" },
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertEquals("user-old", client.getCurrentUserId())
@@ -78,7 +86,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = { "user-123" },
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertEquals("user-123", client.getCurrentUserId())
@@ -96,7 +106,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = { "user-123" },
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -116,7 +128,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = null,
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertNull(client.ads.getCurrentUserId())
@@ -136,7 +150,9 @@ class VtexAdsClientUserIdTest {
             publisherId = "pub-123",
             sessionIdProvider = { "session-456" },
             userIdProvider = { "user-initial" },
-            channel = Channel.SITE
+            channel = Channel.SITE,
+            debug = emptySet(),
+            debugFunction = DebugFunctions.NO_OP
         )
 
         assertEquals(client.ads.getCurrentUserId(), client.events.getCurrentUserId())

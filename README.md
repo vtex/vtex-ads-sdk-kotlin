@@ -738,6 +738,127 @@ val banner = PlacementRequest.builder()
 
 ---
 
+## 🐛 Debugging (Opcional)
+
+O SDK oferece funcionalidades de debug opcionais e retrocompatíveis para ajudar no desenvolvimento e troubleshooting. Por padrão, nenhum log é emitido.
+
+### Configuração de Debug
+
+```kotlin
+import com.vtex.ads.sdk.*
+
+// Sem debug (comportamento padrão - igual ao atual)
+val client = VtexAdsClient(
+    publisherId = "your-publisher-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
+    channel = Channel.SITE
+)
+
+// Com debug habilitado
+val client = VtexAdsClient(
+    publisherId = "your-publisher-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
+    channel = Channel.SITE,
+    debug = debugOf(VtexAdsDebug.EVENTS_ALL, VtexAdsDebug.ADS_LOAD),
+    debugFunction = { label, message -> android.util.Log.d(label, message) }
+)
+```
+
+### Categorias de Debug Disponíveis
+
+| Categoria | Descrição | Exemplo de Uso |
+|-----------|-----------|----------------|
+| `EVENTS_ALL` | Todos os eventos de interação com anúncios | Logs de impression, view, click e conversion |
+| `EVENTS_IMPRESSION` | Eventos de impressão (quando anúncios são exibidos) | `delivery_beacon_event success adId=123...` |
+| `EVENTS_VIEW` | Eventos de visualização (quando anúncios são vistos) | `delivery_beacon_event success adId=123...` |
+| `EVENTS_CLICK` | Eventos de clique (quando usuários clicam em anúncios) | `delivery_beacon_event success adId=123...` |
+| `EVENTS_CONVERSION` | Eventos de conversão (quando pedidos são completados) | `send_conversion success orderId=456...` |
+| `ADS_LOAD` | Carregamento de anúncios (sucesso e erro) | `ads_load success requestId=req_123...` |
+
+### Exemplos de Uso
+
+#### Debug Granular (Apenas Eventos de Visualização)
+
+```kotlin
+val client = VtexAdsClient(
+    publisherId = "your-publisher-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
+    channel = Channel.SITE,
+    debug = debugOf(VtexAdsDebug.EVENTS_VIEW),
+    debugFunction = { label, message -> android.util.Log.d(label, message) }
+)
+```
+
+#### Debug Completo (Todos os Eventos + Carregamento)
+
+```kotlin
+val client = VtexAdsClient(
+    publisherId = "your-publisher-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
+    channel = Channel.SITE,
+    debug = debugOf(VtexAdsDebug.EVENTS_ALL, VtexAdsDebug.ADS_LOAD),
+    debugFunction = { label, message -> android.util.Log.d(label, message) }
+)
+```
+
+#### Debug Customizado para Servidor
+
+```kotlin
+val client = VtexAdsClient(
+    publisherId = "your-publisher-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
+    channel = Channel.SITE,
+    debug = debugOf(VtexAdsDebug.ADS_LOAD),
+    debugFunction = { label, message -> 
+        logger.info("[$label] $message")
+    }
+)
+```
+
+### Formato das Mensagens de Log
+
+#### Eventos de Anúncios
+```
+impression success adId=123 placement=home.hero
+view success adId=456 placement=search.top
+click success adId=789 placement=category.banner
+impression error adId=123 placement=home.hero reason=network_error
+conversion success orderId=order-123 userId=user-456 items=3
+conversion error orderId=order-123 userId=user-456 reason=network_error
+```
+
+#### Carregamento de Anúncios
+```
+ads_load success requestId=req-123 status=200 latencyMs=150 count=5
+ads_load error requestId=req-123 status=500 latencyMs=200 cause=IOException: timeout
+ads_load error requestId=req-123 status=parse_error latencyMs=100 cause=VtexAdsException: Failed to parse response
+```
+
+### Função Helper
+
+```kotlin
+// Criar conjunto de categorias de debug
+val debugCategories = debugOf(
+    VtexAdsDebug.EVENTS_ALL,
+    VtexAdsDebug.ADS_LOAD
+)
+
+// Ou usar categorias específicas
+val specificDebug = debugOf(VtexAdsDebug.EVENTS_IMPRESSION)
+```
+
+### Notas Importantes
+
+- **Retrocompatibilidade**: Sem configuração de debug, nenhum log é emitido (comportamento atual mantido)
+- **Performance**: As mensagens de log são avaliadas de forma lazy - se o debug estiver desabilitado, a string da mensagem não é construída
+- **Segurança**: Exceções na função de debug nunca quebram a aplicação
+- **Flexibilidade**: A função de debug é injetável, permitindo integração com qualquer sistema de logging
+
 ## 📚 API Reference
 
 ### VtexAdsClient

@@ -13,6 +13,8 @@ import com.vtex.ads.sdk.models.Channel
  * @property timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
  * @property maxRetries Maximum number of retry attempts on network errors or 5xx responses (default: 3)
  * @property retryDelayMs Delay between retry attempts in milliseconds (default: 100ms)
+ * @property debug Set of debug categories to enable (default: empty, no debug logging)
+ * @property debugFunction Function to write debug messages (default: NO_OP, discards all messages)
  */
 data class VtexAdsClientConfig(
     val publisherId: String,
@@ -22,7 +24,9 @@ data class VtexAdsClientConfig(
     val brand: String? = null,
     val timeout: Long = 500L,  // Default 500ms
     val maxRetries: Int = 3,    // Default 3 retries
-    val retryDelayMs: Long = 100L  // Default 100ms between retries
+    val retryDelayMs: Long = 100L,  // Default 100ms between retries
+    val debug: Set<VtexAdsDebug> = emptySet(),  // Default no debug
+    val debugFunction: DebugFunction = DebugFunctions.NO_OP  // Default no-op
 ) {
     init {
         require(publisherId.isNotBlank()) { "Publisher ID cannot be blank" }

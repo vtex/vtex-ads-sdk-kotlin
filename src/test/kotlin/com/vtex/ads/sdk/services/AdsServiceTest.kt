@@ -1,6 +1,8 @@
 package com.vtex.ads.sdk.services
 
 import com.vtex.ads.sdk.VtexAdsClientConfig
+import com.vtex.ads.sdk.VtexLogger
+import com.vtex.ads.sdk.DebugFunctions
 import com.vtex.ads.sdk.models.*
 import kotlin.test.*
 
@@ -18,7 +20,7 @@ class AdsServiceTest {
             channel = Channel.SITE,
             brand = "test-brand"
         )
-        service = AdsService(config)
+        service = AdsService(config, VtexLogger(emptySet(), DebugFunctions.NO_OP))
     }
 
     @AfterTest
@@ -333,7 +335,8 @@ class AdsServiceTest {
                 sessionIdProvider = { "session" },
                 userIdProvider = null,
                 channel = Channel.SITE
-            )
+            ),
+            VtexLogger(emptySet(), DebugFunctions.NO_OP)
         )
 
         assertNull(serviceWithoutUser.getCurrentUserId())
