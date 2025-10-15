@@ -13,8 +13,8 @@ class AdsServiceTest {
     fun setup() {
         config = VtexAdsClientConfig(
             publisherId = "test-publisher",
-            sessionId = "test-session",
-            userId = "test-user",
+            sessionIdProvider = { "test-session" },
+            userIdProvider = { "test-user" },
             channel = Channel.SITE,
             brand = "test-brand"
         )
@@ -330,8 +330,8 @@ class AdsServiceTest {
         val serviceWithoutUser = AdsService(
             VtexAdsClientConfig(
                 publisherId = "test",
-                sessionId = "session",
-                userId = null,
+                sessionIdProvider = { "session" },
+                userIdProvider = null,
                 channel = Channel.SITE
             )
         )

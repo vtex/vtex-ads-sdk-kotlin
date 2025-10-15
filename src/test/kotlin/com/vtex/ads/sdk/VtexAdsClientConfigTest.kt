@@ -11,15 +11,15 @@ class VtexAdsClientConfigTest {
     fun `should create config with valid parameters`() {
         val config = VtexAdsClientConfig(
             publisherId = "test-publisher",
-            sessionId = "test-session",
-            userId = "test-user",
+            sessionIdProvider = { "test-session" },
+            userIdProvider = { "test-user" },
             channel = Channel.SITE,
             brand = "test-brand"
         )
 
         assertEquals("test-publisher", config.publisherId)
-        assertEquals("test-session", config.sessionId)
-        assertEquals("test-user", config.userId)
+        assertEquals("test-session", config.getSessionId())
+        assertEquals("test-user", config.getUserId())
         assertEquals(Channel.SITE, config.channel)
         assertEquals("test-brand", config.brand)
         assertEquals(500L, config.timeout)  // Default is 500ms
@@ -30,7 +30,7 @@ class VtexAdsClientConfigTest {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsClientConfig(
                 publisherId = "",
-                sessionId = "test-session",
+                sessionIdProvider = { "test-session" },
                 channel = Channel.SITE
             )
         }
@@ -38,12 +38,14 @@ class VtexAdsClientConfigTest {
 
     @Test
     fun `should fail with blank session id`() {
+        val config = VtexAdsClientConfig(
+            publisherId = "test-publisher",
+            sessionIdProvider = { "" },
+            channel = Channel.SITE
+        )
+        
         assertFailsWith<IllegalArgumentException> {
-            VtexAdsClientConfig(
-                publisherId = "test-publisher",
-                sessionId = "",
-                channel = Channel.SITE
-            )
+            config.getSessionId()
         }
     }
 
@@ -52,7 +54,7 @@ class VtexAdsClientConfigTest {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsClientConfig(
                 publisherId = "test-publisher",
-                sessionId = "test-session",
+                sessionIdProvider = { "test-session" },
                 channel = Channel.SITE,
                 timeout = -1
             )
@@ -63,13 +65,61 @@ class VtexAdsClientConfigTest {
     fun `should allow null userId and brand`() {
         val config = VtexAdsClientConfig(
             publisherId = "test-publisher",
-            sessionId = "test-session",
-            userId = null,
+            sessionIdProvider = { "test-session" },
+            userIdProvider = null,
             channel = Channel.MSITE,
             brand = null
         )
 
-        assertEquals(null, config.userId)
+        assertEquals(null, config.getUserId())
         assertEquals(null, config.brand)
+    }
+
+    @Test
+    fun `should call sessionId provider function`() {
+        var callCount = 0
+        val config = VtexAdsClientConfig(
+            publisherId = "test-publisher",
+            sessionIdProvider = { 
+                callCount++
+                "session-$callCount"
+            },
+            channel = Channel.SITE
+        )
+
+        assertEquals("session-1", config.getSessionId())
+        assertEquals("session-2", config.getSessionId())
+        assertEquals(2, callCount)
+    }
+
+    @Test
+    fun `should call userId provider function`() {
+        var callCount = 0
+        val config = VtexAdsClientConfig(
+            publisherId = "test-publisher",
+            sessionIdProvider = { "test-session" },
+            userIdProvider = { 
+                callCount++
+                "user-$callCount"
+            },
+            channel = Channel.SITE
+        )
+
+        assertEquals("user-1", config.getUserId())
+        assertEquals("user-2", config.getUserId())
+        assertEquals(2, callCount)
+    }
+
+    @Test
+    fun `should fail when sessionId provider returns blank`() {
+        val config = VtexAdsClientConfig(
+            publisherId = "test-publisher",
+            sessionIdProvider = { "" },
+            channel = Channel.SITE
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            config.getSessionId()
+        }
     }
 }

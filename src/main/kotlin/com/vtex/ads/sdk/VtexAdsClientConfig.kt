@@ -6,8 +6,8 @@ import com.vtex.ads.sdk.models.Channel
  * Simplified configuration for VTEX Ads SDK client focused on ad queries.
  *
  * @property publisherId Publisher ID (required for API calls)
- * @property sessionId Unique session ID (required, should be consistent throughout navigation)
- * @property userId Unique user ID (optional, but recommended)
+ * @property sessionIdProvider Function that returns the current session ID (required, called on each request)
+ * @property userIdProvider Function that returns the current user ID (optional, called on each request)
  * @property channel Channel of access (SITE, MSITE, APP)
  * @property brand Brand/site name (required when publisher has multiple sites)
  * @property timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
@@ -16,8 +16,8 @@ import com.vtex.ads.sdk.models.Channel
  */
 data class VtexAdsClientConfig(
     val publisherId: String,
-    val sessionId: String,
-    val userId: String? = null,
+    val sessionIdProvider: () -> String,
+    val userIdProvider: (() -> String?)? = null,
     val channel: Channel,
     val brand: String? = null,
     val timeout: Long = 500L,  // Default 500ms
@@ -26,12 +26,28 @@ data class VtexAdsClientConfig(
 ) {
     init {
         require(publisherId.isNotBlank()) { "Publisher ID cannot be blank" }
-        require(sessionId.isNotBlank()) { "Session ID cannot be blank" }
         require(timeout > 0) { "Timeout must be positive" }
         require(timeout <= MAX_TIMEOUT) { "Timeout cannot exceed ${MAX_TIMEOUT}ms" }
         require(maxRetries >= 0) { "Max retries cannot be negative" }
         require(retryDelayMs >= 0) { "Retry delay cannot be negative" }
     }
+
+    /**
+     * Gets the current session ID by calling the provider function.
+     * @return The current session ID
+     * @throws IllegalStateException if the session ID is blank
+     */
+    fun getSessionId(): String {
+        val sessionId = sessionIdProvider()
+        require(sessionId.isNotBlank()) { "Session ID cannot be blank" }
+        return sessionId
+    }
+
+    /**
+     * Gets the current user ID by calling the provider function.
+     * @return The current user ID, or null if no provider is set
+     */
+    fun getUserId(): String? = userIdProvider?.invoke()
 
     companion object {
         const val MAX_TIMEOUT = 10000L  // Maximum 10 seconds

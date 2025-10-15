@@ -15,8 +15,8 @@ class EventServiceTest {
     fun setup() {
         config = VtexAdsClientConfig(
             publisherId = "test-publisher",
-            sessionId = "test-session",
-            userId = "test-user",
+            sessionIdProvider = { "test-session" },
+            userIdProvider = { "test-user" },
             channel = Channel.SITE,
             brand = "test-brand"
         )
@@ -137,8 +137,8 @@ class EventServiceTest {
         // Create service without userId
         val configWithoutUser = VtexAdsClientConfig(
             publisherId = "test-publisher",
-            sessionId = "test-session",
-            userId = null,
+            sessionIdProvider = { "test-session" },
+            userIdProvider = null,
             channel = Channel.SITE
         )
         val serviceWithoutUser = EventService(configWithoutUser)
