@@ -15,8 +15,8 @@ import java.io.Closeable
  * ```
  * val client = VtexAdsClient(
  *     publisherId = "your-publisher-id",
- *     sessionId = "user-session-id",
- *     userId = "user-id",
+ *     sessionIdProvider = { getCurrentSessionId() },
+ *     userIdProvider = { getCurrentUserId() },
  *     channel = Channel.SITE
  * )
  *
@@ -66,8 +66,8 @@ class VtexAdsClient private constructor(
      * // Client created with anonymous user
      * val client = VtexAdsClient(
      *     publisherId = "pub-123",
-     *     sessionId = "session-456",
-     *     userId = null,
+     *     sessionIdProvider = { getCurrentSessionId() },
+     *     userIdProvider = null, // Anonymous user
      *     channel = Channel.SITE
      * )
      *
@@ -142,17 +142,51 @@ class VtexAdsClient private constructor(
          * Creates a new VtexAdsClient with the simplified configuration.
          *
          * @param publisherId Publisher ID (required)
-         * @param sessionId User session ID (required)
-         * @param userId User ID (optional)
+         * @param sessionIdProvider Function that returns the current session ID (required)
+         * @param userIdProvider Function that returns the current user ID (optional)
          * @param channel Channel (SITE, MSITE, APP)
          * @param brand Brand/site name (optional, required when publisher has multiple sites)
-         * @param baseUrl Base URL for the API (defaults to production)
-         * @param eventsBaseUrl Base URL for events API (defaults to production)
          * @param timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
          * @param maxRetries Maximum number of retry attempts (default: 3)
          * @param retryDelayMs Delay between retries in milliseconds (default: 100ms)
          */
         operator fun invoke(
+            publisherId: String,
+            sessionIdProvider: () -> String,
+            userIdProvider: (() -> String?)? = null,
+            channel: Channel,
+            brand: String? = null,
+            timeout: Long = 500L,
+            maxRetries: Int = 3,
+            retryDelayMs: Long = 100L
+        ): VtexAdsClient {
+            val config = VtexAdsClientConfig(
+                publisherId = publisherId,
+                sessionIdProvider = sessionIdProvider,
+                userIdProvider = userIdProvider,
+                channel = channel,
+                brand = brand,
+                timeout = timeout,
+                maxRetries = maxRetries,
+                retryDelayMs = retryDelayMs
+            )
+            return VtexAdsClient(config)
+        }
+
+        /**
+         * Creates a new VtexAdsClient with static values (backward compatibility).
+         * This method wraps static values in provider functions.
+         *
+         * @param publisherId Publisher ID (required)
+         * @param sessionId Static session ID (required)
+         * @param userId Static user ID (optional)
+         * @param channel Channel (SITE, MSITE, APP)
+         * @param brand Brand/site name (optional, required when publisher has multiple sites)
+         * @param timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
+         * @param maxRetries Maximum number of retry attempts (default: 3)
+         * @param retryDelayMs Delay between retries in milliseconds (default: 100ms)
+         */
+        fun createWithStaticValues(
             publisherId: String,
             sessionId: String,
             userId: String? = null,
@@ -162,17 +196,16 @@ class VtexAdsClient private constructor(
             maxRetries: Int = 3,
             retryDelayMs: Long = 100L
         ): VtexAdsClient {
-            val config = VtexAdsClientConfig(
+            return invoke(
                 publisherId = publisherId,
-                sessionId = sessionId,
-                userId = userId,
+                sessionIdProvider = { sessionId },
+                userIdProvider = userId?.let { { it } },
                 channel = channel,
                 brand = brand,
                 timeout = timeout,
                 maxRetries = maxRetries,
                 retryDelayMs = retryDelayMs
             )
-            return VtexAdsClient(config)
         }
 
         /**

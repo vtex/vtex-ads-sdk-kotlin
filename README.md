@@ -42,11 +42,11 @@ import com.vtex.ads.sdk.models.*
 import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
-    // 1. Configure the SDK
+    // 1. Configure the SDK with dynamic session and user ID providers
     val client = VtexAdsClient(
         publisherId = "your-publisher-id",
-        sessionId = "user-session-id",
-        userId = "user-id",  // optional
+        sessionIdProvider = { getCurrentSessionId() },  // Called on each request
+        userIdProvider = { getCurrentUserId() },         // Called on each request
         channel = Channel.SITE
     )
 
@@ -99,10 +99,10 @@ fun main() = runBlocking {
 
 ```kotlin
 val client = VtexAdsClient(
-    publisherId = "your-publisher-id",  // Required
-    sessionId = "session-id",            // Required
-    userId = "user-id",                  // Optional but recommended
-    channel = Channel.SITE               // SITE, MSITE, or APP
+    publisherId = "your-publisher-id",           // Required
+    sessionIdProvider = { getCurrentSessionId() }, // Required - called on each request
+    userIdProvider = { getCurrentUserId() },         // Optional - called on each request
+    channel = Channel.SITE                           // SITE, MSITE, or APP
 )
 ```
 
@@ -111,12 +111,10 @@ val client = VtexAdsClient(
 ```kotlin
 val config = VtexAdsClientConfig(
     publisherId = "your-publisher-id",
-    sessionId = "session-id",
-    userId = "user-id",
+    sessionIdProvider = { getCurrentSessionId() },
+    userIdProvider = { getCurrentUserId() },
     channel = Channel.SITE,
     brand = "your-brand",                    // For multi-brand publishers
-    baseUrl = "https://custom.api.url",      // Custom API endpoint
-    eventsBaseUrl = "https://custom.events.url",
     timeout = 500L,                          // Request timeout in ms (default: 500ms)
     maxRetries = 3,                          // Max retry attempts (default: 3)
     retryDelayMs = 100L                      // Delay between retries (default: 100ms)
@@ -125,23 +123,38 @@ val config = VtexAdsClientConfig(
 val client = VtexAdsClient(config)
 ```
 
-### Dynamic User ID
+### Backward Compatibility
 
-You can update the user ID at runtime (useful for login scenarios):
+For applications that need static values, you can use the backward compatibility method:
+
+```kotlin
+val client = VtexAdsClient.createWithStaticValues(
+    publisherId = "your-publisher-id",
+    sessionId = "static-session-id",
+    userId = "static-user-id",
+    channel = Channel.SITE
+)
+```
+
+### Dynamic Session and User ID
+
+The SDK now supports dynamic session and user ID providers, which are called on each request. This is useful when these values can change during navigation:
 
 ```kotlin
 val client = VtexAdsClient(
     publisherId = "pub-123",
-    sessionId = "session-456",
-    userId = null,  // Anonymous user
+    sessionIdProvider = { 
+        // This function is called on each request
+        // Return the current session ID
+        getCurrentSessionId() 
+    },
+    userIdProvider = { 
+        // This function is called on each request
+        // Return the current user ID (can be null for anonymous users)
+        getCurrentUserId() 
+    },
     channel = Channel.SITE
 )
-
-// User logs in
-client.updateUserId("user-789")
-
-// Check current user ID
-val currentUserId = client.getCurrentUserId()  // Returns "user-789"
 ```
 
 ---
@@ -1000,6 +1013,8 @@ SOFTWARE.
 ## 🆘 Support
 
 - **Issues**: [GitHub Issues](https://github.com/vtex/vtex-ads-sdk-kotlin/issues)
+- **Documentation**: [VTEX Developer Portal](https://developers.vtex.com)
+- **Email**: dev@vtex.com
 
 ---
 
@@ -1013,3 +1028,6 @@ Special thanks to:
 - The VTEX developer community
 
 ---
+---
+
+**Made with ❤️ using [Claude Code](https://claude.com/claude-code)**
