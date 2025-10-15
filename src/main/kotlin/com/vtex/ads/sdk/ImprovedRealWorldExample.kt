@@ -11,17 +11,20 @@ import kotlinx.coroutines.runBlocking
  */
 fun main() = runBlocking {
     val publisherId = "d4dff0cb-1f21-4a96-9acf-d9426a5ed08c"
-    val sessionId = "example-session"
+    
+    // Example functions that return current session and user IDs
+    fun getCurrentSessionId(): String = "example-session-${System.currentTimeMillis()}"
+    fun getCurrentUserId(): String? = "example-user-id"
 
     val config = VtexAdsClientConfig(
         publisherId = publisherId,
         channel = Channel.SITE,
-        sessionId = sessionId,
+        sessionIdProvider = { getCurrentSessionId() },
+        userIdProvider = { getCurrentUserId() },
         timeout = 500L
     )
 
     val client = VtexAdsClient(config)
-    client.updateUserId("example-user-id")
 
     // Banner Placements - Type-safe and validated
     val bannerImageDesktop = BannerPlacementRequest.builder()

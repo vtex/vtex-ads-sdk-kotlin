@@ -12,8 +12,8 @@ class VtexAdsClientUserIdTest {
     fun `should create client with userId`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = "user-789",
+            sessionIdProvider = { "session-456" },
+            userIdProvider = { "user-789" },
             channel = Channel.SITE
         )
 
@@ -26,8 +26,8 @@ class VtexAdsClientUserIdTest {
     fun `should create client without userId`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = null,
+            sessionIdProvider = { "session-456" },
+            userIdProvider = null,
             channel = Channel.SITE
         )
 
@@ -40,8 +40,8 @@ class VtexAdsClientUserIdTest {
     fun `should update userId from null to value`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = null,
+            sessionIdProvider = { "session-456" },
+            userIdProvider = null,
             channel = Channel.SITE
         )
 
@@ -58,8 +58,8 @@ class VtexAdsClientUserIdTest {
     fun `should update userId from value to new value`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = "user-old",
+            sessionIdProvider = { "session-456" },
+            userIdProvider = { "user-old" },
             channel = Channel.SITE
         )
 
@@ -76,8 +76,8 @@ class VtexAdsClientUserIdTest {
     fun `should update userId from value to null`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = "user-123",
+            sessionIdProvider = { "session-456" },
+            userIdProvider = { "user-123" },
             channel = Channel.SITE
         )
 
@@ -94,8 +94,8 @@ class VtexAdsClientUserIdTest {
     fun `should fail to update userId with blank string`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = "user-123",
+            sessionIdProvider = { "session-456" },
+            userIdProvider = { "user-123" },
             channel = Channel.SITE
         )
 
@@ -114,8 +114,8 @@ class VtexAdsClientUserIdTest {
     fun `should propagate userId update to both services`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = null,
+            sessionIdProvider = { "session-456" },
+            userIdProvider = null,
             channel = Channel.SITE
         )
 
@@ -134,8 +134,8 @@ class VtexAdsClientUserIdTest {
     fun `should maintain userId consistency across services`() {
         val client = VtexAdsClient(
             publisherId = "pub-123",
-            sessionId = "session-456",
-            userId = "user-initial",
+            sessionIdProvider = { "session-456" },
+            userIdProvider = { "user-initial" },
             channel = Channel.SITE
         )
 

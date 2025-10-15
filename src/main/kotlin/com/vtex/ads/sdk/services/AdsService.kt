@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class AdsService(private val config: VtexAdsClientConfig) {
 
-    private val currentUserId = AtomicReference(config.userId)
+    private val currentUserId = AtomicReference(config.getUserId())
 
     private val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(config.timeout, TimeUnit.MILLISECONDS)
@@ -81,7 +81,7 @@ class AdsService(private val config: VtexAdsClientConfig) {
         dedupAds: Boolean = false
     ): AdsResponse = withContext(Dispatchers.IO) {
         val request = AdsRequest(
-            sessionId = config.sessionId,
+            sessionId = config.getSessionId(),
             userId = getCurrentUserId(),
             channel = config.channel,
             context = Context.HOME,
@@ -118,7 +118,7 @@ class AdsService(private val config: VtexAdsClientConfig) {
         dedupAds: Boolean = false
     ): AdsResponse = withContext(Dispatchers.IO) {
         val request = AdsRequest(
-            sessionId = config.sessionId,
+            sessionId = config.getSessionId(),
             userId = getCurrentUserId(),
             channel = config.channel,
             context = Context.SEARCH,
@@ -153,7 +153,7 @@ class AdsService(private val config: VtexAdsClientConfig) {
         dedupAds: Boolean = false
     ): AdsResponse = withContext(Dispatchers.IO) {
         val request = AdsRequest(
-            sessionId = config.sessionId,
+            sessionId = config.getSessionId(),
             userId = getCurrentUserId(),
             channel = config.channel,
             context = Context.CATEGORY,
@@ -188,7 +188,7 @@ class AdsService(private val config: VtexAdsClientConfig) {
         dedupAds: Boolean = false
     ): AdsResponse = withContext(Dispatchers.IO) {
         val request = AdsRequest(
-            sessionId = config.sessionId,
+            sessionId = config.getSessionId(),
             userId = getCurrentUserId(),
             channel = config.channel,
             context = Context.PRODUCT_PAGE,

@@ -15,8 +15,8 @@ class IntegrationTest {
         // 1. Create client as anonymous user
         val client = VtexAdsClient(
             publisherId = "test-pub",
-            sessionId = "session-123",
-            userId = null,  // Anonymous
+            sessionIdProvider = { "session-123" },
+            userIdProvider = null,  // Anonymous
             channel = Channel.SITE
         )
 
@@ -38,8 +38,8 @@ class IntegrationTest {
         // 1. Create client with logged in user
         val client = VtexAdsClient(
             publisherId = "test-pub",
-            sessionId = "session-789",
-            userId = "user-789",
+            sessionIdProvider = { "session-789" },
+            userIdProvider = { "user-789" },
             channel = Channel.SITE
         )
 
@@ -70,8 +70,8 @@ class IntegrationTest {
         // 1. Start with logged in user
         val client = VtexAdsClient(
             publisherId = "test-pub",
-            sessionId = "session-logout",
-            userId = "user-logout",
+            sessionIdProvider = { "session-logout" },
+            userIdProvider = { "user-logout" },
             channel = Channel.SITE
         )
 
@@ -94,8 +94,8 @@ class IntegrationTest {
     fun `should handle switching between users in same session`() {
         val client = VtexAdsClient(
             publisherId = "test-pub",
-            sessionId = "session-switch",
-            userId = "user-a",
+            sessionIdProvider = { "session-switch" },
+            userIdProvider = { "user-a" },
             channel = Channel.SITE
         )
 
@@ -118,13 +118,13 @@ class IntegrationTest {
     fun `should create client with minimal config`() {
         val client = VtexAdsClient(
             publisherId = "minimal-pub",
-            sessionId = "minimal-session",
+            sessionIdProvider = { "minimal-session" },
             channel = Channel.MSITE
         )
 
         assertEquals("minimal-pub", client.config.publisherId)
-        assertEquals("minimal-session", client.config.sessionId)
-        assertNull(client.config.userId)
+        assertEquals("minimal-session", client.config.getSessionId())
+        assertNull(client.config.getUserId())
         assertNull(client.config.brand)
         assertEquals(Channel.MSITE, client.config.channel)
 
@@ -135,16 +135,16 @@ class IntegrationTest {
     fun `should create client with full config`() {
         val client = VtexAdsClient(
             publisherId = "full-pub",
-            sessionId = "full-session",
-            userId = "full-user",
+            sessionIdProvider = { "full-session" },
+            userIdProvider = { "full-user" },
             channel = Channel.APP,
             brand = "full-brand",
             timeout = 1000L
         )
 
         assertEquals("full-pub", client.config.publisherId)
-        assertEquals("full-session", client.config.sessionId)
-        assertEquals("full-user", client.config.userId)
+        assertEquals("full-session", client.config.getSessionId())
+        assertEquals("full-user", client.config.getUserId())
         assertEquals("full-brand", client.config.brand)
         assertEquals(Channel.APP, client.config.channel)
         assertEquals(1000L, client.config.timeout)
@@ -156,7 +156,7 @@ class IntegrationTest {
     fun `should create client for different channels`() {
         val siteClient = VtexAdsClient(
             publisherId = "pub",
-            sessionId = "session",
+            sessionIdProvider = { "session" },
             channel = Channel.SITE
         )
         assertEquals(Channel.SITE, siteClient.config.channel)
@@ -164,7 +164,7 @@ class IntegrationTest {
 
         val msiteClient = VtexAdsClient(
             publisherId = "pub",
-            sessionId = "session",
+            sessionIdProvider = { "session" },
             channel = Channel.MSITE
         )
         assertEquals(Channel.MSITE, msiteClient.config.channel)
@@ -172,7 +172,7 @@ class IntegrationTest {
 
         val appClient = VtexAdsClient(
             publisherId = "pub",
-            sessionId = "session",
+            sessionIdProvider = { "session" },
             channel = Channel.APP
         )
         assertEquals(Channel.APP, appClient.config.channel)
@@ -291,23 +291,25 @@ class IntegrationTest {
         assertFailsWith<IllegalArgumentException> {
             VtexAdsClient(
                 publisherId = "",  // Empty
-                sessionId = "session",
+                sessionIdProvider = { "session" },
                 channel = Channel.SITE
             )
+        }
+
+        val client = VtexAdsClient(
+            publisherId = "pub",
+            sessionIdProvider = { "" },  // Empty
+            channel = Channel.SITE
+        )
+        
+        assertFailsWith<IllegalArgumentException> {
+            client.config.getSessionId()
         }
 
         assertFailsWith<IllegalArgumentException> {
             VtexAdsClient(
                 publisherId = "pub",
-                sessionId = "",  // Empty
-                channel = Channel.SITE
-            )
-        }
-
-        assertFailsWith<IllegalArgumentException> {
-            VtexAdsClient(
-                publisherId = "pub",
-                sessionId = "session",
+                sessionIdProvider = { "session" },
                 channel = Channel.SITE,
                 timeout = -100  // Negative
             )
@@ -347,7 +349,7 @@ class IntegrationTest {
     fun `should properly close all services`() {
         val client = VtexAdsClient(
             publisherId = "cleanup-pub",
-            sessionId = "cleanup-session",
+            sessionIdProvider = { "cleanup-session" },
             channel = Channel.SITE
         )
 

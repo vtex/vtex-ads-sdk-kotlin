@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference
 class EventService(private val config: VtexAdsClientConfig) {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    private val currentUserId = AtomicReference(config.userId)
+    private val currentUserId = AtomicReference(config.getUserId())
 
     private val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(1000, TimeUnit.MILLISECONDS)
@@ -122,7 +122,7 @@ class EventService(private val config: VtexAdsClientConfig) {
             val conversionRequest = ConversionRequest(
                 publisherId = config.publisherId,
                 userId = userId ?: throw IllegalArgumentException("User ID is required for order conversion"),
-                sessionId = config.sessionId,
+                sessionId = config.getSessionId(),
                 orderId = order.orderId,
                 createdAt = order.createdAt,
                 channel = config.channel,
@@ -158,7 +158,7 @@ class EventService(private val config: VtexAdsClientConfig) {
         return try {
             val eventRequest = EventRequest(
                 userId = getCurrentUserId(),
-                sessionId = config.sessionId
+                sessionId = config.getSessionId()
             )
 
             val json = eventRequestAdapter.toJson(eventRequest)
