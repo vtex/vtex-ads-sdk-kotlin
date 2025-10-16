@@ -80,9 +80,10 @@ class EventService(
         }
         
         val placementInfo = placement?.let { "placement=$it" } ?: ""
-        val urlParams = extractUrlParams(eventUrl)
         
         logger.log(eventType, "VtexAds/Events") {
+            // Only process URL parsing when debug is enabled
+            val urlParams = extractUrlParams(eventUrl)
             val action = when (eventType) {
                 VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
                 VtexAdsDebug.EVENTS_VIEW -> "view"
@@ -97,6 +98,8 @@ class EventService(
             
             if (!success) {
                 logger.log(eventType, "VtexAds/Events") {
+                    // Only process URL parsing when debug is enabled
+                    val urlParams = extractUrlParams(eventUrl)
                     val action = when (eventType) {
                         VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
                         VtexAdsDebug.EVENTS_VIEW -> "view"

@@ -245,6 +245,7 @@ class AdsService(
                 val totalAds = adsResponse.getAllAds().size
                 
                 logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
+                    // Only process these expensive operations when debug is enabled
                     val adsByType = adsResponse.getAllAds().groupBy { it.type }.mapValues { it.value.size }
                     val placementNames = adsResponse.placements.keys.joinToString(",")
                     val segmentationKeys = adsRequest.segmentation?.map { it.key }?.joinToString(",") ?: "none"

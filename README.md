@@ -856,6 +856,11 @@ val specificDebug = debugOf(VtexAdsDebug.EVENTS_IMPRESSION)
 
 - **Retrocompatibilidade**: Sem configuração de debug, nenhum log é emitido (comportamento atual mantido)
 - **Performance**: As mensagens de log são avaliadas de forma lazy - se o debug estiver desabilitado, a string da mensagem não é construída
+- **Zero Overhead**: Quando debug está desabilitado (`emptySet()`), não há nenhum processamento adicional:
+  - Parsing de URLs não é executado
+  - Agrupamento de anúncios por tipo não é feito
+  - Processamento de segmentação não é realizado
+  - Construção de strings de log não acontece
 - **Segurança**: Exceções na função de debug nunca quebram a aplicação
 - **Flexibilidade**: A função de debug é injetável, permitindo integração com qualquer sistema de logging
 
