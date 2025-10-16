@@ -824,10 +824,10 @@ val client = VtexAdsClient(
 
 #### Eventos de Anúncios
 ```
-impression success adId=123 placement=home.hero
-view success adId=456 placement=search.top
-click success adId=789 placement=category.banner
-impression error adId=123 placement=home.hero reason=network_error
+impression success placement=home.hero
+view success placement=search.top
+click success placement=category.banner
+impression error placement=home.hero reason=network_error
 conversion success orderId=order-123 userId=user-456 items=3
 conversion error orderId=order-123 userId=user-456 reason=network_error
 ```

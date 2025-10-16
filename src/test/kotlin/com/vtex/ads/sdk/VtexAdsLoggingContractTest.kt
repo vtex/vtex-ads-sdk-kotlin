@@ -40,13 +40,12 @@ class VtexAdsLoggingContractTest {
         )
 
         logger.log(VtexAdsDebug.EVENTS_IMPRESSION, "VtexAds/Events") {
-            "impression success adId=123 placement=home.hero"
+            "impression success placement=home.hero"
         }
 
         assertEquals(1, writer.entries.size)
         assertEquals("VtexAds/Events", writer.entries[0].label)
         assertTrue(writer.entries[0].message.contains("impression success"))
-        assertTrue(writer.entries[0].message.contains("adId=123"))
         assertTrue(writer.entries[0].message.contains("placement=home.hero"))
     }
 
@@ -59,13 +58,12 @@ class VtexAdsLoggingContractTest {
         )
 
         logger.log(VtexAdsDebug.EVENTS_VIEW, "VtexAds/Events") {
-            "view success adId=456 placement=search.top"
+            "view success placement=search.top"
         }
 
         assertEquals(1, writer.entries.size)
         assertEquals("VtexAds/Events", writer.entries[0].label)
         assertTrue(writer.entries[0].message.contains("view success"))
-        assertTrue(writer.entries[0].message.contains("adId=456"))
         assertTrue(writer.entries[0].message.contains("placement=search.top"))
     }
 
@@ -78,13 +76,12 @@ class VtexAdsLoggingContractTest {
         )
 
         logger.log(VtexAdsDebug.EVENTS_CLICK, "VtexAds/Events") {
-            "click success adId=789 placement=category.banner"
+            "click success placement=category.banner"
         }
 
         assertEquals(1, writer.entries.size)
         assertEquals("VtexAds/Events", writer.entries[0].label)
         assertTrue(writer.entries[0].message.contains("click success"))
-        assertTrue(writer.entries[0].message.contains("adId=789"))
         assertTrue(writer.entries[0].message.contains("placement=category.banner"))
     }
 

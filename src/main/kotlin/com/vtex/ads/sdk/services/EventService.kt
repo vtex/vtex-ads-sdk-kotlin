@@ -79,8 +79,6 @@ class EventService(
             else -> VtexAdsDebug.EVENTS_IMPRESSION // Default fallback
         }
         
-        // Extract ad ID from URL for logging (if available)
-        val adId = extractAdIdFromUrl(eventUrl)
         val placementInfo = placement?.let { "placement=$it" } ?: ""
         
         logger.log(eventType, "VtexAds/Events") {
@@ -90,7 +88,7 @@ class EventService(
                 VtexAdsDebug.EVENTS_CLICK -> "click"
                 else -> "delivery_beacon_event"
             }
-            "$action success adId=$adId $placementInfo".trim()
+            "$action success $placementInfo".trim()
         }
         
         scope.launch {
@@ -104,7 +102,7 @@ class EventService(
                         VtexAdsDebug.EVENTS_CLICK -> "click"
                         else -> "delivery_beacon_event"
                     }
-                    "$action error adId=$adId $placementInfo reason=network_error".trim()
+                    "$action error $placementInfo reason=network_error".trim()
                 }
             }
             
@@ -262,17 +260,6 @@ class EventService(
     fun close() {
         client.dispatcher.executorService.shutdown()
         client.connectionPool.evictAll()
-    }
-
-    /**
-     * Helper function to extract ad ID from event URL.
-     * This is a best-effort extraction for logging purposes.
-     */
-    private fun extractAdIdFromUrl(url: String): String {
-        // Try to extract ad ID from common URL patterns
-        val adIdPattern = "ad_id=([^&]+)".toRegex()
-        val match = adIdPattern.find(url)
-        return match?.groupValues?.get(1) ?: "unknown"
     }
 
     companion object {

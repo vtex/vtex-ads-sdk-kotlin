@@ -36,8 +36,7 @@ class VtexAdsLoggingIntegrationTest {
         
         val successEntry = eventsEntries.find { it.message.contains("impression success") }
         assertTrue(successEntry != null)
-        assertTrue(successEntry!!.message.contains("adId=123"))
-        assertTrue(successEntry.message.contains("placement=home.hero"))
+        assertTrue(successEntry!!.message.contains("placement=home.hero"))
         
         client.close()
     }
@@ -66,8 +65,7 @@ class VtexAdsLoggingIntegrationTest {
         
         val successEntry = eventsEntries.find { it.message.contains("view success") }
         assertTrue(successEntry != null)
-        assertTrue(successEntry!!.message.contains("adId=456"))
-        assertTrue(successEntry.message.contains("placement=search.top"))
+        assertTrue(successEntry!!.message.contains("placement=search.top"))
         
         client.close()
     }
@@ -96,8 +94,7 @@ class VtexAdsLoggingIntegrationTest {
         
         val successEntry = eventsEntries.find { it.message.contains("click success") }
         assertTrue(successEntry != null)
-        assertTrue(successEntry!!.message.contains("adId=789"))
-        assertTrue(successEntry.message.contains("placement=category.banner"))
+        assertTrue(successEntry!!.message.contains("placement=category.banner"))
         
         client.close()
     }
