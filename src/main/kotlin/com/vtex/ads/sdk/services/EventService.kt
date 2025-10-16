@@ -2,6 +2,7 @@ package com.vtex.ads.sdk.services
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.vtex.ads.sdk.Constants
 import com.vtex.ads.sdk.VtexAdsClientConfig
 import com.vtex.ads.sdk.VtexLogger
 import com.vtex.ads.sdk.VtexAdsDebug
@@ -244,7 +245,7 @@ class EventService(
      */
     private fun sendConversionEvent(conversionRequest: ConversionRequest): Boolean {
         return try {
-            val url = "${VtexAdsClientConfig.DEFAULT_EVENTS_BASE_URL}/v1/beacon/conversion"
+            val url = "${Constants.EVENTS_BASE_URL}/v1/beacon/conversion"
             val json = conversionRequestAdapter.toJson(conversionRequest)
             val body = json.toRequestBody(JSON_MEDIA_TYPE)
 
@@ -323,6 +324,6 @@ class EventService(
     }
 
     companion object {
-        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+        private val JSON_MEDIA_TYPE = Constants.JSON_MEDIA_TYPE.toMediaType()
     }
 }

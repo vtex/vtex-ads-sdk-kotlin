@@ -141,7 +141,7 @@ class VtexAdsClient private constructor(
         /**
          * SDK version
          */
-        const val VERSION = "0.1.0-SNAPSHOT"
+        const val VERSION = Constants.SDK_VERSION
 
         /**
          * Creates a new VtexAdsClient with the simplified configuration.

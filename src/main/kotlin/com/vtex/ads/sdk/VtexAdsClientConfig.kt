@@ -22,16 +22,16 @@ data class VtexAdsClientConfig(
     val userIdProvider: (() -> String?)? = null,
     val channel: Channel,
     val brand: String? = null,
-    val timeout: Long = 500L,  // Default 500ms
-    val maxRetries: Int = 3,    // Default 3 retries
-    val retryDelayMs: Long = 100L,  // Default 100ms between retries
+    val timeout: Long = Constants.DEFAULT_TIMEOUT_MS,  // Default 500ms
+    val maxRetries: Int = Constants.DEFAULT_MAX_RETRIES,    // Default 3 retries
+    val retryDelayMs: Long = Constants.DEFAULT_RETRY_DELAY_MS,  // Default 100ms between retries
     val debug: Set<VtexAdsDebug> = emptySet(),  // Default no debug
     val debugFunction: DebugFunction = DebugFunctions.NO_OP  // Default no-op
 ) {
     init {
         require(publisherId.isNotBlank()) { "Publisher ID cannot be blank" }
         require(timeout > 0) { "Timeout must be positive" }
-        require(timeout <= MAX_TIMEOUT) { "Timeout cannot exceed ${MAX_TIMEOUT}ms" }
+        require(timeout <= Constants.MAX_TIMEOUT_MS) { "Timeout cannot exceed ${Constants.MAX_TIMEOUT_MS}ms" }
         require(maxRetries >= 0) { "Max retries cannot be negative" }
         require(retryDelayMs >= 0) { "Retry delay cannot be negative" }
     }
@@ -54,8 +54,7 @@ data class VtexAdsClientConfig(
     fun getUserId(): String? = userIdProvider?.invoke()
 
     companion object {
-        const val MAX_TIMEOUT = 10000L  // Maximum 10 seconds
-        const val DEFAULT_BASE_URL = "https://newtail-media.newtail.com"
-        const val DEFAULT_EVENTS_BASE_URL = "https://newtail-media.newtail.com"
+        // Constants moved to Constants.kt for better organization
+        // Use Constants.ADS_BASE_URL and Constants.EVENTS_BASE_URL instead
     }
 }

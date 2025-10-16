@@ -3,6 +3,7 @@ package com.vtex.ads.sdk.services
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.vtex.ads.sdk.Constants
 import com.vtex.ads.sdk.VtexAdsClientConfig
 import com.vtex.ads.sdk.VtexLogger
 import com.vtex.ads.sdk.VtexAdsDebug
@@ -213,7 +214,7 @@ class AdsService(
      * Executes an ads request to the API.
      */
     private fun executeAdsRequest(adsRequest: AdsRequest): AdsResponse {
-        val url = "$BASE_URL/v1/rma/${config.publisherId}"
+        val url = "${Constants.ADS_BASE_URL}/v1/rma/${config.publisherId}"
         val json = adsRequestAdapter.toJson(adsRequest)
         val body = json.toRequestBody(JSON_MEDIA_TYPE)
         val requestId = generateRequestId()
@@ -314,7 +315,6 @@ class AdsService(
     }
 
     companion object {
-        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
-        private const val BASE_URL = "https://newtail-media.newtail.com.br"
+        private val JSON_MEDIA_TYPE = Constants.JSON_MEDIA_TYPE.toMediaType()
     }
 }
