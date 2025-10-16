@@ -48,14 +48,19 @@ class VtexAdsClient private constructor(
 ) : Closeable {
 
     /**
+     * Internal logger for debug messages.
+     */
+    private val logger = VtexLogger(config.debug, config.debugFunction)
+
+    /**
      * Service for querying ads from the VTEX Ads API.
      */
-    val ads: AdsService = AdsService(config)
+    val ads: AdsService = AdsService(config, logger)
 
     /**
      * Service for sending ad events asynchronously (delivery events and conversions).
      */
-    val events: EventService = EventService(config)
+    val events: EventService = EventService(config, logger)
 
     /**
      * Updates the user ID for both ads and events services.
@@ -136,7 +141,7 @@ class VtexAdsClient private constructor(
         /**
          * SDK version
          */
-        const val VERSION = "0.1.0-SNAPSHOT"
+        const val VERSION = Constants.SDK_VERSION
 
         /**
          * Creates a new VtexAdsClient with the simplified configuration.
@@ -149,6 +154,8 @@ class VtexAdsClient private constructor(
          * @param timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
          * @param maxRetries Maximum number of retry attempts (default: 3)
          * @param retryDelayMs Delay between retries in milliseconds (default: 100ms)
+         * @param debug Set of debug categories to enable (default: empty, no debug logging)
+         * @param debugFunction Function to write debug messages (default: NO_OP, discards all messages)
          */
         operator fun invoke(
             publisherId: String,
@@ -158,7 +165,9 @@ class VtexAdsClient private constructor(
             brand: String? = null,
             timeout: Long = 500L,
             maxRetries: Int = 3,
-            retryDelayMs: Long = 100L
+            retryDelayMs: Long = 100L,
+            debug: Set<VtexAdsDebug> = emptySet(),
+            debugFunction: DebugFunction = DebugFunctions.NO_OP
         ): VtexAdsClient {
             val config = VtexAdsClientConfig(
                 publisherId = publisherId,
@@ -168,7 +177,9 @@ class VtexAdsClient private constructor(
                 brand = brand,
                 timeout = timeout,
                 maxRetries = maxRetries,
-                retryDelayMs = retryDelayMs
+                retryDelayMs = retryDelayMs,
+                debug = debug,
+                debugFunction = debugFunction
             )
             return VtexAdsClient(config)
         }
@@ -185,6 +196,8 @@ class VtexAdsClient private constructor(
          * @param timeout Request timeout in milliseconds (default: 500ms, max: 10000ms)
          * @param maxRetries Maximum number of retry attempts (default: 3)
          * @param retryDelayMs Delay between retries in milliseconds (default: 100ms)
+         * @param debug Set of debug categories to enable (default: empty, no debug logging)
+         * @param debugFunction Function to write debug messages (default: NO_OP, discards all messages)
          */
         fun createWithStaticValues(
             publisherId: String,
@@ -194,7 +207,9 @@ class VtexAdsClient private constructor(
             brand: String? = null,
             timeout: Long = 500L,
             maxRetries: Int = 3,
-            retryDelayMs: Long = 100L
+            retryDelayMs: Long = 100L,
+            debug: Set<VtexAdsDebug> = emptySet(),
+            debugFunction: DebugFunction = DebugFunctions.NO_OP
         ): VtexAdsClient {
             return invoke(
                 publisherId = publisherId,
@@ -204,7 +219,9 @@ class VtexAdsClient private constructor(
                 brand = brand,
                 timeout = timeout,
                 maxRetries = maxRetries,
-                retryDelayMs = retryDelayMs
+                retryDelayMs = retryDelayMs,
+                debug = debug,
+                debugFunction = debugFunction
             )
         }
 

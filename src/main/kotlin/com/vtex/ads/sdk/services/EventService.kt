@@ -2,7 +2,10 @@ package com.vtex.ads.sdk.services
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.vtex.ads.sdk.Constants
 import com.vtex.ads.sdk.VtexAdsClientConfig
+import com.vtex.ads.sdk.VtexLogger
+import com.vtex.ads.sdk.VtexAdsDebug
 import com.vtex.ads.sdk.models.*
 import com.vtex.ads.sdk.utils.HashUtils
 import kotlinx.coroutines.CoroutineScope
@@ -21,8 +24,12 @@ import java.util.concurrent.atomic.AtomicReference
  * Events are sent in a fire-and-forget manner to avoid blocking the UI.
  *
  * @property config Client configuration
+ * @property logger Internal logger for debug messages
  */
-class EventService(private val config: VtexAdsClientConfig) {
+class EventService(
+    private val config: VtexAdsClientConfig,
+    private val logger: VtexLogger
+) {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val currentUserId = AtomicReference(config.getUserId())
@@ -57,14 +64,57 @@ class EventService(private val config: VtexAdsClientConfig) {
      * - Click events: when a user clicks on an ad
      *
      * @param eventUrl The event URL from the ad response (impressionUrl, viewUrl, or clickUrl)
+     * @param placement Optional placement name for logging context
      * @param onComplete Optional callback with success/failure status
      */
     fun deliveryBeaconEvent(
         eventUrl: String,
+        placement: String? = null,
         onComplete: ((Boolean) -> Unit)? = null
     ) {
+        // Determine event type from URL for logging
+        val eventType = when {
+            eventUrl.contains("impression") -> VtexAdsDebug.EVENTS_IMPRESSION
+            eventUrl.contains("view") -> VtexAdsDebug.EVENTS_VIEW
+            eventUrl.contains("click") -> VtexAdsDebug.EVENTS_CLICK
+            else -> VtexAdsDebug.EVENTS_IMPRESSION // Default fallback
+        }
+        
+        val placementInfo = placement?.let { "placement=$it" } ?: ""
+        
+        logger.log(eventType, "VtexAds/Events") {
+            // Only process URL parsing when debug is enabled
+            val adId = extractAdIdFromUrl(eventUrl)
+            val urlParams = extractUrlParams(eventUrl)
+            val adIdInfo = adId?.let { "adId=$it" } ?: ""
+            val action = when (eventType) {
+                VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
+                VtexAdsDebug.EVENTS_VIEW -> "view"
+                VtexAdsDebug.EVENTS_CLICK -> "click"
+                else -> "delivery_beacon_event"
+            }
+            "$action success $adIdInfo $placementInfo $urlParams".trim()
+        }
+        
         scope.launch {
             val success = sendEvent(eventUrl)
+            
+            if (!success) {
+                logger.log(eventType, "VtexAds/Events") {
+                    // Only process URL parsing when debug is enabled
+                    val adId = extractAdIdFromUrl(eventUrl)
+                    val urlParams = extractUrlParams(eventUrl)
+                    val adIdInfo = adId?.let { "adId=$it" } ?: ""
+                    val action = when (eventType) {
+                        VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
+                        VtexAdsDebug.EVENTS_VIEW -> "view"
+                        VtexAdsDebug.EVENTS_CLICK -> "click"
+                        else -> "delivery_beacon_event"
+                    }
+                    "$action error $adIdInfo $placementInfo $urlParams reason=network_error".trim()
+                }
+            }
+            
             onComplete?.invoke(success)
         }
     }
@@ -80,8 +130,19 @@ class EventService(private val config: VtexAdsClientConfig) {
         conversionRequest: ConversionRequest,
         onComplete: ((Boolean) -> Unit)? = null
     ) {
+        logger.log(VtexAdsDebug.EVENTS_CONVERSION, "VtexAds/Events") {
+            "conversion success orderId=${conversionRequest.orderId} userId=${conversionRequest.userId} items=${conversionRequest.items.size}"
+        }
+        
         scope.launch {
             val success = sendConversionEvent(conversionRequest)
+            
+            if (!success) {
+                logger.log(VtexAdsDebug.EVENTS_CONVERSION, "VtexAds/Events") {
+                    "conversion error orderId=${conversionRequest.orderId} userId=${conversionRequest.userId} reason=network_error"
+                }
+            }
+            
             onComplete?.invoke(success)
         }
     }
@@ -184,7 +245,7 @@ class EventService(private val config: VtexAdsClientConfig) {
      */
     private fun sendConversionEvent(conversionRequest: ConversionRequest): Boolean {
         return try {
-            val url = "${VtexAdsClientConfig.DEFAULT_EVENTS_BASE_URL}/v1/beacon/conversion"
+            val url = "${Constants.EVENTS_BASE_URL}/v1/beacon/conversion"
             val json = conversionRequestAdapter.toJson(conversionRequest)
             val body = json.toRequestBody(JSON_MEDIA_TYPE)
 
@@ -210,7 +271,59 @@ class EventService(private val config: VtexAdsClientConfig) {
         client.connectionPool.evictAll()
     }
 
+    /**
+     * Extracts the adId from event URL using generic pattern.
+     * Pattern: /:version/beacon/:eventName/:adId
+     * Works with any version and eventName (impression, view, click, etc.)
+     */
+    private fun extractAdIdFromUrl(url: String): String? {
+        return try {
+            // Generic regex pattern: /version/beacon/eventName/adId
+            // Matches: /v1/beacon/view/ad-123, /v134-beta/beacon/view/0498230948324, etc.
+            // Supports complex version patterns like v134-beta, v2.1, v2024-alpha
+            val pattern = Regex("""/v[^/]+/beacon/[^/]+/([^/?]+)""")
+            val matchResult = pattern.find(url)
+            matchResult?.groupValues?.get(1)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Extracts useful parameters from event URL for logging purposes.
+     * Returns a formatted string with available parameters.
+     */
+    private fun extractUrlParams(url: String): String {
+        val params = mutableListOf<String>()
+        
+        try {
+            val uri = java.net.URI(url)
+            val query = uri.query ?: return ""
+            
+            val paramMap = query.split("&").associate { param ->
+                val (key, value) = param.split("=", limit = 2)
+                key to value
+            }
+            
+            // Extract useful parameters in order of importance
+            paramMap["request_id"]?.let { params += "requestId=$it" }
+            paramMap["campaign_id"]?.let { params += "campaignId=$it" }
+            paramMap["ad_type"]?.let { params += "adType=$it" }
+            paramMap["pname"]?.let { params += "pname=$it" }
+            paramMap["context"]?.let { params += "context=$it" }
+            paramMap["channel"]?.let { params += "channel=$it" }
+            paramMap["ad_size"]?.let { params += "adSize=$it" }
+            paramMap["requested_at"]?.let { params += "requestedAt=$it" }
+            
+        } catch (e: Exception) {
+            // If URL parsing fails, return empty string
+            return ""
+        }
+        
+        return params.joinToString(" ")
+    }
+
     companion object {
-        private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+        private val JSON_MEDIA_TYPE = Constants.JSON_MEDIA_TYPE.toMediaType()
     }
 }

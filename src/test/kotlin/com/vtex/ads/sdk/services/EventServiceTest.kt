@@ -1,6 +1,8 @@
 package com.vtex.ads.sdk.services
 
 import com.vtex.ads.sdk.VtexAdsClientConfig
+import com.vtex.ads.sdk.VtexLogger
+import com.vtex.ads.sdk.DebugFunctions
 import com.vtex.ads.sdk.models.*
 import com.vtex.ads.sdk.utils.HashUtils
 import kotlinx.coroutines.runBlocking
@@ -20,7 +22,7 @@ class EventServiceTest {
             channel = Channel.SITE,
             brand = "test-brand"
         )
-        service = EventService(config)
+        service = EventService(config, VtexLogger(emptySet(), DebugFunctions.NO_OP))
     }
 
     @AfterTest
@@ -141,7 +143,7 @@ class EventServiceTest {
             userIdProvider = null,
             channel = Channel.SITE
         )
-        val serviceWithoutUser = EventService(configWithoutUser)
+        val serviceWithoutUser = EventService(configWithoutUser, VtexLogger(emptySet(), DebugFunctions.NO_OP))
 
         val order = Order(
             orderId = "order-123",

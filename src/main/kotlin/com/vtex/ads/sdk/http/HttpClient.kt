@@ -1,5 +1,6 @@
 package com.vtex.ads.sdk.http
 
+import com.vtex.ads.sdk.Constants
 import com.vtex.ads.sdk.VtexAdsClientConfig
 import com.vtex.ads.sdk.exceptions.*
 import okhttp3.*
@@ -113,7 +114,7 @@ class HttpClient(private val config: VtexAdsClientConfig) {
     private fun buildUrl(endpoint: String, queryParams: Map<String, String> = emptyMap()): HttpUrl {
         val urlBuilder = HttpUrl.Builder()
             .scheme("https")
-            .host(VtexAdsClientConfig.DEFAULT_BASE_URL.removePrefix("https://").removePrefix("http://"))
+            .host(Constants.ADS_BASE_URL.removePrefix("https://").removePrefix("http://"))
             .addPathSegments(endpoint.removePrefix("/"))
 
         queryParams.forEach { (key, value) ->
