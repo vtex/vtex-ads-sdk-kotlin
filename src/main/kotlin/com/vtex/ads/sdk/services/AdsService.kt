@@ -250,8 +250,9 @@ class AdsService(
                     val placementNames = adsResponse.placements.keys.joinToString(",")
                     val segmentationKeys = adsRequest.segmentation?.map { it.key }?.joinToString(",") ?: "none"
                     val tagsCount = adsRequest.tags?.size ?: 0
+                    val adIds = adsResponse.getAllAds().map { it.adId }.joinToString(",")
                     
-                    "ads_load success requestId=$requestId status=${response.code} latencyMs=$latencyMs count=$totalAds context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} types=$adsByType returnedPlacements=$placementNames segmentation=$segmentationKeys tagsCount=$tagsCount dedupCampaign=${adsRequest.dedupCampaignAds} dedupAds=${adsRequest.dedupAds} responseSize=${responseBody.length}"
+                    "ads_load success requestId=$requestId status=${response.code} latencyMs=$latencyMs count=$totalAds context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} types=$adsByType returnedPlacements=$placementNames segmentation=$segmentationKeys tagsCount=$tagsCount dedupCampaign=${adsRequest.dedupCampaignAds} dedupAds=${adsRequest.dedupAds} adIds=$adIds responseSize=${responseBody.length}"
                 }
                 
                 return adsResponse

@@ -824,17 +824,17 @@ val client = VtexAdsClient(
 
 #### Eventos de Anúncios
 ```
-impression success placement=home.hero requestId=2d8a63ad-a885-4d1d-87e1-794120a8c521 campaignId=e48f7340-f123-46d8-8fa1-4e09454239e5 adType=banner pname=home_top_banner context=home channel=app adSize=mobile requestedAt=1760616781024
-view success placement=search.top requestId=req-456 campaignId=camp-789 adType=product context=search channel=site
-click success placement=category.banner adType=banner context=category channel=app
-impression error placement=home.hero requestId=req-123 reason=network_error
+impression success adId=ad-123 placement=home.hero requestId=2d8a63ad-a885-4d1d-87e1-794120a8c521 campaignId=e48f7340-f123-46d8-8fa1-4e09454239e5 adType=banner pname=home_top_banner context=home channel=app adSize=mobile requestedAt=1760616781024
+view success adId=ad-456 placement=search.top requestId=req-456 campaignId=camp-789 adType=product context=search channel=site
+click success adId=ad-789 placement=category.banner adType=banner context=category channel=app
+impression error adId=ad-123 placement=home.hero requestId=req-123 reason=network_error
 conversion success orderId=order-123 userId=user-456 items=3
 conversion error orderId=order-123 userId=user-456 reason=network_error
 ```
 
 #### Carregamento de Anúncios
 ```
-ads_load success requestId=req-123 status=200 latencyMs=150 count=5 context=HOME channel=SITE placements=2 userId=user-456 sessionId=session-789 types={PRODUCT=3, BANNER=2} returnedPlacements=home.hero,home.products segmentation=GENDER,AGE tagsCount=2 dedupCampaign=true dedupAds=false responseSize=2048
+ads_load success requestId=req-123 status=200 latencyMs=150 count=5 context=HOME channel=SITE placements=2 userId=user-456 sessionId=session-789 types={PRODUCT=3, BANNER=2} returnedPlacements=home.hero,home.products segmentation=GENDER,AGE tagsCount=2 dedupCampaign=true dedupAds=false adIds=ad-123,ad-456,ad-789,ad-101,ad-202 responseSize=2048
 ads_load error requestId=req-123 status=500 latencyMs=200 context=SEARCH channel=APP placements=1 userId=user-456 sessionId=session-789 cause=IOException: timeout
 ads_load error requestId=req-123 status=parse_error latencyMs=100 context=CATEGORY channel=SITE placements=3 userId=user-456 sessionId=session-789 cause=VtexAdsException: Failed to parse response
 ```

@@ -83,14 +83,16 @@ class EventService(
         
         logger.log(eventType, "VtexAds/Events") {
             // Only process URL parsing when debug is enabled
+            val adId = extractAdIdFromUrl(eventUrl)
             val urlParams = extractUrlParams(eventUrl)
+            val adIdInfo = adId?.let { "adId=$it" } ?: ""
             val action = when (eventType) {
                 VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
                 VtexAdsDebug.EVENTS_VIEW -> "view"
                 VtexAdsDebug.EVENTS_CLICK -> "click"
                 else -> "delivery_beacon_event"
             }
-            "$action success $placementInfo $urlParams".trim()
+            "$action success $adIdInfo $placementInfo $urlParams".trim()
         }
         
         scope.launch {
@@ -99,14 +101,16 @@ class EventService(
             if (!success) {
                 logger.log(eventType, "VtexAds/Events") {
                     // Only process URL parsing when debug is enabled
+                    val adId = extractAdIdFromUrl(eventUrl)
                     val urlParams = extractUrlParams(eventUrl)
+                    val adIdInfo = adId?.let { "adId=$it" } ?: ""
                     val action = when (eventType) {
                         VtexAdsDebug.EVENTS_IMPRESSION -> "impression"
                         VtexAdsDebug.EVENTS_VIEW -> "view"
                         VtexAdsDebug.EVENTS_CLICK -> "click"
                         else -> "delivery_beacon_event"
                     }
-                    "$action error $placementInfo $urlParams reason=network_error".trim()
+                    "$action error $adIdInfo $placementInfo $urlParams reason=network_error".trim()
                 }
             }
             
@@ -264,6 +268,24 @@ class EventService(
     fun close() {
         client.dispatcher.executorService.shutdown()
         client.connectionPool.evictAll()
+    }
+
+    /**
+     * Extracts the adId from event URL using generic pattern.
+     * Pattern: /:version/beacon/:eventName/:adId
+     * Works with any version and eventName (impression, view, click, etc.)
+     */
+    private fun extractAdIdFromUrl(url: String): String? {
+        return try {
+            // Generic regex pattern: /version/beacon/eventName/adId
+            // Matches: /v1/beacon/view/ad-123, /v134-beta/beacon/view/0498230948324, etc.
+            // Supports complex version patterns like v134-beta, v2.1, v2024-alpha
+            val pattern = Regex("""/v[^/]+/beacon/[^/]+/([^/?]+)""")
+            val matchResult = pattern.find(url)
+            matchResult?.groupValues?.get(1)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /**
