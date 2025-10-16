@@ -22,7 +22,7 @@ class VtexLoggerTest {
     }
 
     @Test
-    fun `should log when specific EVENTS_* is enabled`() {
+    fun `should log when specific EVENTS category is enabled`() {
         val entries = mutableListOf<Pair<String, String>>()
         val logger = VtexLogger(
             enabled = setOf(VtexAdsDebug.EVENTS_IMPRESSION),
@@ -36,7 +36,7 @@ class VtexLoggerTest {
     }
 
     @Test
-    fun `should not log when specific EVENTS_* is not enabled`() {
+    fun `should not log when specific EVENTS category is not enabled`() {
         val entries = mutableListOf<Pair<String, String>>()
         val logger = VtexLogger(
             enabled = setOf(VtexAdsDebug.EVENTS_CLICK),

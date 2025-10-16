@@ -151,7 +151,7 @@ class VtexAdsLoggingContractTest {
     }
 
     @Test
-    fun `EVENTS_ALL should enable all EVENTS_* categories`() {
+    fun `EVENTS_ALL should enable all EVENTS categories`() {
         val writer = RecordingWriter()
         val logger = VtexLogger(
             enabled = setOf(VtexAdsDebug.EVENTS_ALL),
