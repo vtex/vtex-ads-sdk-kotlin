@@ -80,6 +80,7 @@ class EventService(
         }
         
         val placementInfo = placement?.let { "placement=$it" } ?: ""
+        val urlParams = extractUrlParams(eventUrl)
         
         logger.log(eventType, "VtexAds/Events") {
             val action = when (eventType) {
@@ -88,7 +89,7 @@ class EventService(
                 VtexAdsDebug.EVENTS_CLICK -> "click"
                 else -> "delivery_beacon_event"
             }
-            "$action success $placementInfo".trim()
+            "$action success $placementInfo $urlParams".trim()
         }
         
         scope.launch {
@@ -102,7 +103,7 @@ class EventService(
                         VtexAdsDebug.EVENTS_CLICK -> "click"
                         else -> "delivery_beacon_event"
                     }
-                    "$action error $placementInfo reason=network_error".trim()
+                    "$action error $placementInfo $urlParams reason=network_error".trim()
                 }
             }
             
@@ -260,6 +261,40 @@ class EventService(
     fun close() {
         client.dispatcher.executorService.shutdown()
         client.connectionPool.evictAll()
+    }
+
+    /**
+     * Extracts useful parameters from event URL for logging purposes.
+     * Returns a formatted string with available parameters.
+     */
+    private fun extractUrlParams(url: String): String {
+        val params = mutableListOf<String>()
+        
+        try {
+            val uri = java.net.URI(url)
+            val query = uri.query ?: return ""
+            
+            val paramMap = query.split("&").associate { param ->
+                val (key, value) = param.split("=", limit = 2)
+                key to value
+            }
+            
+            // Extract useful parameters in order of importance
+            paramMap["request_id"]?.let { params += "requestId=$it" }
+            paramMap["campaign_id"]?.let { params += "campaignId=$it" }
+            paramMap["ad_type"]?.let { params += "adType=$it" }
+            paramMap["pname"]?.let { params += "pname=$it" }
+            paramMap["context"]?.let { params += "context=$it" }
+            paramMap["channel"]?.let { params += "channel=$it" }
+            paramMap["ad_size"]?.let { params += "adSize=$it" }
+            paramMap["requested_at"]?.let { params += "requestedAt=$it" }
+            
+        } catch (e: Exception) {
+            // If URL parsing fails, return empty string
+            return ""
+        }
+        
+        return params.joinToString(" ")
     }
 
     companion object {

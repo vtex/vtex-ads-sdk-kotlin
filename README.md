@@ -824,10 +824,10 @@ val client = VtexAdsClient(
 
 #### Eventos de Anúncios
 ```
-impression success placement=home.hero
-view success placement=search.top
-click success placement=category.banner
-impression error placement=home.hero reason=network_error
+impression success placement=home.hero requestId=2d8a63ad-a885-4d1d-87e1-794120a8c521 campaignId=e48f7340-f123-46d8-8fa1-4e09454239e5 adType=banner pname=home_top_banner context=home channel=app adSize=mobile requestedAt=1760616781024
+view success placement=search.top requestId=req-456 campaignId=camp-789 adType=product context=search channel=site
+click success placement=category.banner adType=banner context=category channel=app
+impression error placement=home.hero requestId=req-123 reason=network_error
 conversion success orderId=order-123 userId=user-456 items=3
 conversion error orderId=order-123 userId=user-456 reason=network_error
 ```
