@@ -834,9 +834,9 @@ conversion error orderId=order-123 userId=user-456 reason=network_error
 
 #### Carregamento de Anúncios
 ```
-ads_load success requestId=req-123 status=200 latencyMs=150 count=5
-ads_load error requestId=req-123 status=500 latencyMs=200 cause=IOException: timeout
-ads_load error requestId=req-123 status=parse_error latencyMs=100 cause=VtexAdsException: Failed to parse response
+ads_load success requestId=req-123 status=200 latencyMs=150 count=5 context=HOME channel=SITE placements=2 userId=user-456 sessionId=session-789 types={PRODUCT=3, BANNER=2} returnedPlacements=home.hero,home.products segmentation=GENDER,AGE tagsCount=2 dedupCampaign=true dedupAds=false responseSize=2048
+ads_load error requestId=req-123 status=500 latencyMs=200 context=SEARCH channel=APP placements=1 userId=user-456 sessionId=session-789 cause=IOException: timeout
+ads_load error requestId=req-123 status=parse_error latencyMs=100 context=CATEGORY channel=SITE placements=3 userId=user-456 sessionId=session-789 cause=VtexAdsException: Failed to parse response
 ```
 
 ### Função Helper
@@ -858,6 +858,17 @@ val specificDebug = debugOf(VtexAdsDebug.EVENTS_IMPRESSION)
 - **Performance**: As mensagens de log são avaliadas de forma lazy - se o debug estiver desabilitado, a string da mensagem não é construída
 - **Segurança**: Exceções na função de debug nunca quebram a aplicação
 - **Flexibilidade**: A função de debug é injetável, permitindo integração com qualquer sistema de logging
+
+### ⚠️ Aviso de Segurança
+
+**NÃO RECOMENDAMOS o uso do sistema de debug em produção** pelos seguintes motivos:
+
+- **Performance**: Logs detalhados podem impactar a performance da aplicação
+- **Privacidade**: Logs contêm dados de usuários (userId, sessionId, segmentation, tags) que devem ser protegidos
+- **Volume**: Logs extensos podem gerar grande volume de dados em produção
+- **Compliance**: Dados pessoais em logs podem violar regulamentações como LGPD/GDPR
+
+**Use apenas em desenvolvimento e testes** para debugging e troubleshooting.
 
 ## 📚 API Reference
 

@@ -231,7 +231,7 @@ class AdsService(
                 
                 if (!response.isSuccessful) {
                     logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
-                        "ads_load error requestId=$requestId status=${response.code} latencyMs=$latencyMs cause=VtexAdsException: Failed to get ads: ${response.code} - ${response.message}"
+                        "ads_load error requestId=$requestId status=${response.code} latencyMs=$latencyMs context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} cause=VtexAdsException: Failed to get ads: ${response.code} - ${response.message}"
                     }
                     throw VtexAdsException("Failed to get ads: ${response.code} - ${response.message}")
                 }
@@ -245,7 +245,12 @@ class AdsService(
                 val totalAds = adsResponse.getAllAds().size
                 
                 logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
-                    "ads_load success requestId=$requestId status=${response.code} latencyMs=$latencyMs count=$totalAds"
+                    val adsByType = adsResponse.getAllAds().groupBy { it.type }.mapValues { it.value.size }
+                    val placementNames = adsResponse.placements.keys.joinToString(",")
+                    val segmentationKeys = adsRequest.segmentation?.map { it.key }?.joinToString(",") ?: "none"
+                    val tagsCount = adsRequest.tags?.size ?: 0
+                    
+                    "ads_load success requestId=$requestId status=${response.code} latencyMs=$latencyMs count=$totalAds context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} types=$adsByType returnedPlacements=$placementNames segmentation=$segmentationKeys tagsCount=$tagsCount dedupCampaign=${adsRequest.dedupCampaignAds} dedupAds=${adsRequest.dedupAds} responseSize=${responseBody.length}"
                 }
                 
                 return adsResponse
@@ -253,13 +258,13 @@ class AdsService(
         } catch (e: IOException) {
             val latencyMs = System.currentTimeMillis() - startTime
             logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
-                "ads_load error requestId=$requestId status=0 latencyMs=$latencyMs cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
+                "ads_load error requestId=$requestId status=0 latencyMs=$latencyMs context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
             }
             throw VtexAdsException("Network error while fetching ads: ${e.message}", e)
         } catch (e: VtexAdsException) {
             val latencyMs = System.currentTimeMillis() - startTime
             logger.log(VtexAdsDebug.ADS_LOAD, "VtexAds/AdsLoad") {
-                "ads_load error requestId=$requestId status=parse_error latencyMs=$latencyMs cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
+                "ads_load error requestId=$requestId status=parse_error latencyMs=$latencyMs context=${adsRequest.context} channel=${adsRequest.channel} placements=${adsRequest.placements.size} userId=${adsRequest.userId} sessionId=${adsRequest.sessionId.take(12)} cause=${e.javaClass.simpleName}: ${e.message?.take(120)}"
             }
             throw e
         }
