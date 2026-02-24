@@ -12,7 +12,10 @@ data class EventRequest(
     val userId: String? = null,
 
     @Json(name = "session_id")
-    val sessionId: String
+    val sessionId: String,
+
+    @Json(name = "ads_sourcing_components")
+    val adsSourcingComponents: List<String> = listOf("SDK_ADS_KOTLIN")
 )
 
 /**
